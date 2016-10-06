@@ -1,0 +1,153 @@
+==========Opinion Structure==========
+
+Opinion Structure:
+	<Entity>
+		<Property />
+		<Property />
+		<Property />
+		<Property />
+		<Property />
+	</Entity>
+
+Opinion Example:
+	<entity>
+		<title>
+		<rating>
+		<comment>
+		...
+	</entity>
+
+
+==========Using Procedure==========
+	
+1. Pip install using requirement.txt
+
+2. Running the django sync and key in the superuser.
+	python manage.py syncdb	
+	acc					=ubuntu
+	pwd					=root
+	
+3. Running the django program.
+	python manage.py runserver 0.0.0.0:8080
+	
+3. Open the browser and key in the url with admin site.
+	url					=http://IpAddress:8080/admin
+	acc					=ubuntu
+	pwd					=root
+	
+4. Crawler->Website, Add Website.
+	DatasetSource		="Web"
+	Enable 				=Click
+	CanExtract			=Click
+	
+5. Crawler->Crawl propertys, Add Crawl propertys
+	Website				=Choosing the Website.
+	Url					=URL Combine the parameter.
+		Ex: http://www.hotels.com/ho<<130000~130036/1>>-tr/
+	Page404Path			=The 404 page.
+	NJobs				=Maximum 10.
+	
+6. Crawler->Extraction entitys, Add Extraction entitys	
+	Name				=The name of the element.
+	WebsiteID			=Choosing the website.
+	EntitySelector		=CSS Selector.
+		Ex:	div.review.clearfix.hreview
+
+7. Crawler->Extraction propertys, Add Extraction propertys
+	Name				=The name of the element.
+	ExtractionEntityID	=Choosing the Extraction Entity.
+	PropertySelector	=CSS Selector.
+		Ex:	blockquote.description
+
+8. Execute url:	http://IpAddress:8080/crawl
+	Automatically Crawl the website. You can find the dataset in the dataset folder.
+	
+9. Execute url:	http://IpAddress:8080/extract/entity
+	Automatically Extract the website. You can find the entity in the back-end stage.
+
+10. Execute url:	http://IpAddress:8080/extract/property
+	Automatically Extract the website. You can find the property in the back-end stage.
+
+		
+==========Program Structure==========
+
+	Views<->Controller->libs->Models
+
+==========Crawler==========		
+	Models
+		class Website(models.Model)
+		class CrawlProperty
+		class ExtractionProperty(models.Model)
+		class Entity(models.Model)
+		class Instance(models.Model)
+	Forms
+		class WebsiteForm(ModelForm)
+		class CrawlPropertyForm(ModelForm)
+		class ExtractionPropertyForm(ModelForm)
+		class EntityForm(ModelForm)
+		class InstanceForm(ModelForm)
+	controller
+		def importFromWebExportToFileC(siteName, urlList, page404)
+	libs		
+		def fetchFromWebL(importPath, page404Path)
+		def fetchFromLocalL(importPath)
+		def saveByFileL(fname, content)
+		
+==========Library==========
+
+	<return>	library.name(parameters)
+	<list>		libs.stringL.fetchUrl(fakeUrl)
+		
+		
+	
+==========Database Schema==========
+		
+Website:
+	id:						Integer; auto incretment; primary key
+	name:					Varchar(30)
+	datasetSource:			Varchar(10); "Web"/"File"
+	canExtract:				Boolean; default =False
+	enable:					Boolean; default =False
+	checkDataset:			Boolean; default =False
+	datasetLocation:		Varchar(150); blank; null
+	datasetFileNum:			Integer; default =0
+	Extracted:				Boolean; default =False
+
+CrawlProperty:
+	id:						Integer; auto incretment; primary key
+	websiteID:				Integer; foreign key(Website)
+	url:					Varchar(URL)
+	page404Path:			Varchar(URL)
+	nJobs:					Integer; default =1
+	-unique(websiteID, url)
+
+ExtractionEntity:
+	id:						Integer; auto incretment; primary key
+	websiteID:				Integer; foreign key(Website.id)
+	entitySelector:			Varchar(100); index
+	-unique(websiteID, entitySelector)
+	
+ExtractionProperty:
+	id:						Integer; auto incretment; primary key
+	name:					Varchar(30)
+	extractionEntityID:		Integer; foreign key(ExtractionEntity.id)
+	propertySelector:		Varchar(100)
+	-unique(extractionEntityID, propertySelector)
+		
+Entity:
+	id: 					Integer; auto incretment; primary key	
+	websiteID:				Integer; foreign key(Website.id)
+	extractionEntityID:		Integer; foreign key(ExtractionEntity.id)
+	datasetPath:			Varchar(150)
+	content:				Text; blank; null
+	used:					Boolean; default =False
+	datetime:				Datetime; default =create time
+	
+Property:
+	id:						Integer; auto incretment; primary key
+	entityID:				Integer; foreign key(Entity.id)
+	extractionPropertyID:	Integer; foreign key(ExtractionProperty.id)
+	content:				Text; blank; null
+	datetime:				Datetime; default =create time
+	-unique(extractionEntityID, extractionPropertyID)
+	
